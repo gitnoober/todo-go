@@ -44,10 +44,10 @@ If you want to change the MongoDB connection string, update the hostName constan
 
 API Endpoints
 
-	•	GET /todo/: Fetch all todos.
-	•	POST /todo/: Create a new todo.
-	•	PUT /todo/{id}: Update a specific todo by ID.
-	•	DELETE /todo/{id}: Delete a specific todo by ID.
+	•GET /todo/: Fetch all todos.
+	•POST /todo/: Create a new todo.
+	•PUT /todo/{id}: Update a specific todo by ID.
+	•DELETE /todo/{id}: Delete a specific todo by ID.
 
 Todo Item Structure
 
