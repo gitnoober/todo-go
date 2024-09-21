@@ -29,50 +29,11 @@ const (
 	port     = ":9000"
 )
 
-// Define the Status type
-type Status int
-
-// Enum for the different statuses
-const (
-	Pending Status = iota
-	InProgress
-	Completed
-)
-
-// String method for Status type
-func (s Status) String() string {
-	return [...]string{"pending", "in_progress", "completed"}[s]
-}
-
-// MarshalJSON implements the json.Marshaler interface for Status
-func (s Status) MarshalJSON() ([]byte, error) {
-	return json.Marshal(s.String())
-}
-
-// UnmarshalJSON implements the json.Unmarshaler interface for Status
-func (s *Status) UnmarshalJSON(data []byte) error {
-	var statusString string
-	if err := json.Unmarshal(data, &statusString); err != nil {
-		return err
-	}
-	switch statusString {
-	case "pending":
-		*s = Pending
-	case "in_progress":
-		*s = InProgress
-	case "completed":
-		*s = Completed
-	default:
-		log.Println("invalid status", statusString)
-	}
-	return nil
-}
-
 type (
 	todoModel struct {
 		ID        primitive.ObjectID `bson:"_id,omitempty"`
 		Title     string             `bson:"title"`
-		Status    Status             `bson:"status"`
+		Completed    bool             `bson:"completed"`
 		CreatedAt time.Time          `bson:"created_at"`
 		UpdatedAt time.Time          `bson:"updated_at"`
 	}
@@ -80,7 +41,7 @@ type (
 	todo struct {
 		ID        string  `json:"id"`
 		Title     string  `json:"title"`
-		Status    Status  `json:"status"`
+		Completed    bool  `json:"completed"`
 		CreatedAt string  `json:"created_at"`
 		UpdatedAt string  `json:"updated_at"`
 	}
@@ -146,7 +107,7 @@ func fetchTodos(w http.ResponseWriter, r *http.Request) {
 		todoList = append(todoList, todo{
 			ID:        t.ID.Hex(),
 			Title:     t.Title,
-			Status:    t.Status,
+			Completed:    t.Completed,
 			CreatedAt: t.CreatedAt.Format(time.RFC3339),
 			UpdatedAt: t.UpdatedAt.Format(time.RFC3339),
 		})
@@ -175,19 +136,10 @@ func createTodo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check for valid status
-	if t.Status != Pending && t.Status != InProgress && t.Status != Completed {
-		rnd.JSON(w, http.StatusBadRequest, renderer.M{
-			"message": "Failed to create todo",
-			"error":   "Invalid status provided",
-		})
-		return
-	}
-
 	tm := todoModel{
 		ID:        primitive.NewObjectID(),
 		Title:     t.Title,
-		Status:    t.Status,
+		Completed:    t.Completed,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
@@ -247,7 +199,7 @@ func updateTodo(w http.ResponseWriter, r *http.Request) {
 	update := bson.M{
 		"$set": bson.M{
 			"title":      t.Title,
-			"status":     t.Status,
+			"completed":     t.Completed,
 			"updated_at": time.Now(),
 		},
 	}
